@@ -52,6 +52,7 @@
             max-width: 100%;
             max-height: 100vh;
             box-sizing: border-box;
+            transition: all 0.2s ease;
         }
 
         .header {
@@ -137,6 +138,7 @@
             font-weight: bold;
             font-size: 0.85rem;
             min-height: 18px;
+            text-align: center;
         }
 
         /* Mode Switch Button */
@@ -201,29 +203,73 @@
         .btn-easy { background-color: var(--easy-color); }
         .btn-normal { background-color: var(--medium-color); }
         .btn-hard { background-color: var(--hard-color); }
+
+        /* Mobile Layout Adjustments for Hard/Expert Mode */
+        @media screen and (max-width: 768px) {
+            .game-container.layout-hard {
+                flex-direction: row;
+                align-items: stretch;
+                gap: 10px;
+                padding: 8px;
+                max-width: 100vw;
+                max-height: 100vh;
+            }
+
+            .game-container.layout-hard .side-panel {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                width: 130px;
+                flex-shrink: 0;
+            }
+
+            .game-container.layout-hard .board-wrapper {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+
+            .game-container.layout-hard .difficulty-panel {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .game-container.layout-hard .diff-btn {
+                width: 100%;
+                padding: 4px;
+                font-size: 0.75rem;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="game-container">
-        <div class="header">
-            <div>🚩 <span id="flags-left">10</span></div>
-            <button class="face-btn" id="face-btn" onclick="initGame()">😊</button>
-            <div>⏱️ <span id="timer">0</span>s</div>
+    <div class="game-container" id="game-container">
+        <!-- Main Board Wrapper -->
+        <div class="board-wrapper">
+            <div class="board" id="board"></div>
         </div>
 
-        <div class="board" id="board"></div>
+        <!-- Side / Bottom Control Panel -->
+        <div class="side-panel" id="side-panel">
+            <div class="header">
+                <div>🚩 <span id="flags-left">10</span></div>
+                <button class="face-btn" id="face-btn" onclick="initGame()">😊</button>
+                <div>⏱️ <span id="timer">0</span>s</div>
+            </div>
 
-        <button class="mode-switch-btn" id="mode-btn" onclick="toggleMode()">
-            ⛏️ Mode: Digging
-        </button>
+            <button class="mode-switch-btn" id="mode-btn" onclick="toggleMode()">
+                ⛏️ Mode: Digging
+            </button>
 
-        <div class="status-msg" id="status-msg"></div>
+            <div class="status-msg" id="status-msg"></div>
 
-        <div class="difficulty-panel">
-            <button class="diff-btn btn-easy active" onclick="setDifficulty('easy')">Easy</button>
-            <button class="diff-btn btn-normal" onclick="setDifficulty('normal')">Normal</button>
-            <button class="diff-btn btn-hard" onclick="setDifficulty('hard')">Hard</button>
+            <div class="difficulty-panel">
+                <button class="diff-btn btn-easy active" onclick="setDifficulty('easy')">Easy</button>
+                <button class="diff-btn btn-normal" onclick="setDifficulty('normal')">Normal</button>
+                <button class="diff-btn btn-hard" onclick="setDifficulty('hard')">Hard</button>
+            </div>
         </div>
     </div>
 
@@ -232,7 +278,7 @@
     let configs = {
         easy: { rows: 9, cols: 9, mines: 10, cellSize: 32, fontSize: '1.1rem' },
         normal: { rows: 16, cols: 16, mines: 40, cellSize: 20, fontSize: '0.8rem' },
-        hard: { rows: 30, cols: 16, mines: 99, cellSize: 16, fontSize: '0.65rem' }
+        hard: { rows: 30, cols: 16, mines: 99, cellSize: 20, fontSize: '0.8rem' } // Larger cell size for mobile landscape expert mode
     };
 
     let ROWS = configs.easy.rows;
@@ -246,8 +292,9 @@
     let timer = 0;
     let timerInterval = null;
     let gameStarted = false;
-    let isFlagMode = false; // false = Digging, true = Flagging
+    let isFlagMode = false;
 
+    const gameContainer = document.getElementById('game-container');
     const boardElement = document.getElementById('board');
     const flagsElement = document.getElementById('flags-left');
     const timerElement = document.getElementById('timer');
@@ -271,6 +318,12 @@
         ROWS = configs[diff].rows;
         COLS = configs[diff].cols;
         MINES = configs[diff].mines;
+
+        if (diff === 'hard') {
+            gameContainer.classList.add('layout-hard');
+        } else {
+            gameContainer.classList.remove('layout-hard');
+        }
 
         document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelector('.btn-' + diff).classList.add('active');
