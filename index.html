@@ -137,7 +137,6 @@
             font-weight: bold;
             font-size: 0.85rem;
             min-height: 18px;
-            text-align: center;
         }
 
         /* Mode Switch Button */
@@ -202,83 +201,29 @@
         .btn-easy { background-color: var(--easy-color); }
         .btn-normal { background-color: var(--medium-color); }
         .btn-hard { background-color: var(--hard-color); }
-
-        /* Mobile Landscape Hard Mode Layout (75% Board / 25% Side Menu) */
-        @media screen and (max-width: 900px) and (orientation: landscape) {
-            .game-container.layout-hard {
-                flex-direction: row-reverse; /* Menu on side, board taking rest */
-                align-items: center;
-                justify-content: center;
-                gap: 12px;
-                padding: 6px 10px;
-                width: 100vw;
-                height: 100vh;
-                border-radius: 0;
-            }
-
-            .game-container.layout-hard .side-panel {
-                display: flex;
-                flex-direction: column;
-                justify-content: space-around;
-                width: 22vw; /* ~25% for menu */
-                height: 90vh;
-                box-sizing: border-box;
-            }
-
-            .game-container.layout-hard .board-wrapper {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 74vw; /* ~75% for game board */
-                height: 95vh;
-                overflow: auto;
-            }
-
-            .game-container.layout-hard .board {
-                transform: scale(1.05); /* Extra large sizing on mobile hard mode */
-                transform-origin: center;
-            }
-
-            .game-container.layout-hard .difficulty-panel {
-                flex-direction: column;
-                gap: 4px;
-            }
-
-            .game-container.layout-hard .diff-btn {
-                width: 100%;
-                padding: 4px;
-                font-size: 0.75rem;
-            }
-        }
     </style>
 </head>
 <body>
 
-    <div class="game-container" id="game-container">
-        <!-- Main Board Wrapper -->
-        <div class="board-wrapper" id="board-wrapper">
-            <div class="board" id="board"></div>
+    <div class="game-container">
+        <div class="header">
+            <div>🚩 <span id="flags-left">10</span></div>
+            <button class="face-btn" id="face-btn" onclick="initGame()">😊</button>
+            <div>⏱️ <span id="timer">0</span>s</div>
         </div>
 
-        <!-- Control Panel -->
-        <div class="side-panel" id="side-panel">
-            <div class="header">
-                <div>🚩 <span id="flags-left">10</span></div>
-                <button class="face-btn" id="face-btn" onclick="initGame()">😊</button>
-                <div>⏱️ <span id="timer">0</span>s</div>
-            </div>
+        <div class="board" id="board"></div>
 
-            <button class="mode-switch-btn" id="mode-btn" onclick="toggleMode()">
-                ⛏️ Mode: Digging
-            </button>
+        <button class="mode-switch-btn" id="mode-btn" onclick="toggleMode()">
+            ⛏️ Mode: Digging
+        </button>
 
-            <div class="status-msg" id="status-msg"></div>
+        <div class="status-msg" id="status-msg"></div>
 
-            <div class="difficulty-panel">
-                <button class="diff-btn btn-easy active" onclick="setDifficulty('easy')">Easy</button>
-                <button class="diff-btn btn-normal" onclick="setDifficulty('normal')">Normal</button>
-                <button class="diff-btn btn-hard" onclick="setDifficulty('hard')">Hard</button>
-            </div>
+        <div class="difficulty-panel">
+            <button class="diff-btn btn-easy active" onclick="setDifficulty('easy')">Easy</button>
+            <button class="diff-btn btn-normal" onclick="setDifficulty('normal')">Normal</button>
+            <button class="diff-btn btn-hard" onclick="setDifficulty('hard')">Hard</button>
         </div>
     </div>
 
@@ -287,7 +232,7 @@
     let configs = {
         easy: { rows: 9, cols: 9, mines: 10, cellSize: 32, fontSize: '1.1rem' },
         normal: { rows: 16, cols: 16, mines: 40, cellSize: 20, fontSize: '0.8rem' },
-        hard: { rows: 30, cols: 16, mines: 99, cellSize: 25, fontSize: '0.95rem' } // Larger cells for mobile landscape
+        hard: { rows: 30, cols: 16, mines: 99, cellSize: 16, fontSize: '0.65rem' }
     };
 
     let ROWS = configs.easy.rows;
@@ -301,9 +246,8 @@
     let timer = 0;
     let timerInterval = null;
     let gameStarted = false;
-    let isFlagMode = false;
+    let isFlagMode = false; // false = Digging, true = Flagging
 
-    const gameContainer = document.getElementById('game-container');
     const boardElement = document.getElementById('board');
     const flagsElement = document.getElementById('flags-left');
     const timerElement = document.getElementById('timer');
@@ -327,12 +271,6 @@
         ROWS = configs[diff].rows;
         COLS = configs[diff].cols;
         MINES = configs[diff].mines;
-
-        if (diff === 'hard') {
-            gameContainer.classList.add('layout-hard');
-        } else {
-            gameContainer.classList.remove('layout-hard');
-        }
 
         document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelector('.btn-' + diff).classList.add('active');
