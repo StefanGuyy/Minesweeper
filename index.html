@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Minesweeper</title>
     <style>
         :root {
@@ -34,11 +34,12 @@
             padding: 10px;
             user-select: none;
             -webkit-user-select: none;
+            touch-action: manipulation;
         }
 
         .game-container {
             background-color: var(--panel-color);
-            padding: 20px;
+            padding: 16px;
             border-radius: 16px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             display: flex;
@@ -52,7 +53,7 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             font-size: 1.2rem;
             font-weight: bold;
             background: rgba(0, 0, 0, 0.2);
@@ -90,7 +91,6 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1.25rem; /* Larger font size for numbers */
             cursor: pointer;
             transition: background-color 0.15s;
         }
@@ -127,15 +127,44 @@
         .c-8 { color: #94a3b8; }
 
         .status-msg {
-            margin-top: 12px;
+            margin-top: 10px;
             font-weight: bold;
             min-height: 24px;
+        }
+
+        /* Quick-Flag Touch Button */
+        .flag-hold-btn {
+            width: 100%;
+            margin-top: 14px;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #334155;
+            border: 2px solid #475569;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.1s, transform 0.05s, border-color 0.1s;
+            touch-action: none;
+        }
+
+        .flag-hold-btn.active {
+            background-color: var(--danger-color);
+            border-color: #f43f5e;
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+            transform: scale(0.98);
         }
 
         .difficulty-panel {
             display: flex;
             gap: 10px;
-            margin-top: 16px;
+            margin-top: 14px;
+            width: 100%;
+            justify-content: center;
         }
 
         .diff-btn {
@@ -175,6 +204,10 @@
 
         <div class="board" id="board"></div>
 
+        <button class="flag-hold-btn" id="flag-btn">
+            🚩 HOLD TO FLAG
+        </button>
+
         <div class="status-msg" id="status-msg"></div>
 
         <div class="difficulty-panel">
@@ -203,12 +236,32 @@
     let timer = 0;
     let timerInterval = null;
     let gameStarted = false;
+    let isFlagModeHolding = false;
 
     const boardElement = document.getElementById('board');
     const flagsElement = document.getElementById('flags-left');
     const timerElement = document.getElementById('timer');
     const statusMsgElement = document.getElementById('status-msg');
     const faceBtn = document.getElementById('face-btn');
+    const flagHoldBtn = document.getElementById('flag-btn');
+
+    // Multi-finger hold detection for mobile touch events
+    function setFlagMode(active) {
+        isFlagModeHolding = active;
+        if (active) {
+            flagHoldBtn.classList.add('active');
+        } else {
+            flagHoldBtn.classList.remove('active');
+        }
+    }
+
+    flagHoldBtn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        setFlagMode(true);
+    });
+
+    window.addEventListener('pointerup', () => setFlagMode(false));
+    window.addEventListener('pointercancel', () => setFlagMode(false));
 
     function setDifficulty(diff) {
         currentDiff = diff;
@@ -255,12 +308,18 @@
                 
                 const cellEl = document.createElement('div');
                 cellEl.classList.add('cell');
-                // Scaled font sizes to make numbers nice and big while fitting the grid
                 cellEl.style.fontSize = currentDiff === 'hard' ? '0.9rem' : (currentDiff === 'normal' ? '1.1rem' : '1.3rem');
                 cellEl.dataset.row = r;
                 cellEl.dataset.col = c;
                 
-                cellEl.addEventListener('click', () => handleCellClick(r, c));
+                cellEl.addEventListener('click', () => {
+                    if (isFlagModeHolding) {
+                        handleCellRightClick(r, c);
+                    } else {
+                        handleCellClick(r, c);
+                    }
+                });
+
                 cellEl.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     handleCellRightClick(r, c);
@@ -348,12 +407,6 @@
 
         if (flagCount === board[r][c].adjacentMines) {
             let hitMine = false;
-            for (let dr = -1; dr <= 1; dr++) {
-                for (let dc = -1; dc <= 1; dr++) { // wait, let dc = -1; dc <= 1; dc++
-                    // fixing inline loop error from copy paste
-                }
-            }
-            // Quick safety patch for inner loops
             for (let dr = -1; dr <= 1; dr++) {
                 for (let dc = -1; dc <= 1; dc++) {
                     let nr = r + dr, nc = c + dc;
