@@ -11,7 +11,6 @@
             --cell-hidden: #334155;
             --cell-hover: #475569;
             --cell-revealed: #0f172a;
-            --accent-color: #38bdf8;
             --danger-color: #f43f5e;
             --danger-dark: #9f1239;
             --danger-light: #fda4af;
@@ -21,31 +20,38 @@
             --hard-color: #fca5a5;
         }
 
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Lock scrolling completely so everything fits on one screen */
             background-color: var(--bg-color);
             color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 10px;
+            font-family: system-ui, -apple-system, sans-serif;
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
         }
 
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            box-sizing: border-box;
+        }
+
         .game-container {
             background-color: var(--panel-color);
-            padding: 16px;
-            border-radius: 16px;
+            padding: 10px 14px;
+            border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
             align-items: center;
             max-width: 100%;
+            max-height: 100vh;
+            box-sizing: border-box;
         }
 
         .header {
@@ -53,22 +59,22 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            margin-bottom: 14px;
-            font-size: 1.2rem;
+            margin-bottom: 6px;
+            font-size: 1rem;
             font-weight: bold;
             background: rgba(0, 0, 0, 0.2);
-            padding: 10px 16px;
-            border-radius: 8px;
+            padding: 6px 12px;
+            border-radius: 6px;
             box-sizing: border-box;
         }
 
         .face-btn {
             background: none;
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             cursor: pointer;
-            padding: 0 8px;
-            border-radius: 6px;
+            padding: 0 6px;
+            border-radius: 4px;
             transition: transform 0.1s;
         }
 
@@ -78,15 +84,15 @@
 
         .board {
             display: grid;
-            gap: 4px;
+            gap: 2px;
             background-color: #0f172a;
-            padding: 6px;
-            border-radius: 8px;
+            padding: 4px;
+            border-radius: 6px;
         }
 
         .cell {
             background-color: var(--cell-hidden);
-            border-radius: 6px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -127,51 +133,53 @@
         .c-8 { color: #94a3b8; }
 
         .status-msg {
-            margin-top: 10px;
+            margin-top: 4px;
             font-weight: bold;
-            min-height: 24px;
+            font-size: 0.85rem;
+            min-height: 18px;
         }
 
         /* Quick-Flag Touch Button */
         .flag-hold-btn {
             width: 100%;
-            margin-top: 14px;
-            padding: 14px;
-            font-size: 1.1rem;
+            margin-top: 6px;
+            padding: 8px;
+            font-size: 0.95rem;
             font-weight: bold;
             color: #ffffff;
             background-color: #334155;
             border: 2px solid #475569;
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             transition: background-color 0.1s, transform 0.05s, border-color 0.1s;
             touch-action: none;
+            box-sizing: border-box;
         }
 
         .flag-hold-btn.active {
             background-color: var(--danger-color);
             border-color: #f43f5e;
-            box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+            box-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
             transform: scale(0.98);
         }
 
         .difficulty-panel {
             display: flex;
-            gap: 10px;
-            margin-top: 14px;
+            gap: 8px;
+            margin-top: 6px;
             width: 100%;
             justify-content: center;
         }
 
         .diff-btn {
             border: none;
-            padding: 8px 16px;
+            padding: 6px 12px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             border-radius: 6px;
             cursor: pointer;
             color: #0f172a;
@@ -181,7 +189,7 @@
 
         .diff-btn.active {
             opacity: 1;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
         }
 
         .diff-btn:active {
@@ -220,9 +228,9 @@
 <script>
     let currentDiff = 'easy';
     let configs = {
-        easy: { rows: 9, cols: 9, mines: 10, cellSize: 38 },
-        normal: { rows: 16, cols: 16, mines: 40, cellSize: 30 },
-        hard: { rows: 30, cols: 16, mines: 99, cellSize: 22 }
+        easy: { rows: 9, cols: 9, mines: 10, cellSize: 32, fontSize: '1.1rem' },
+        normal: { rows: 16, cols: 16, mines: 40, cellSize: 20, fontSize: '0.8rem' },
+        hard: { rows: 30, cols: 16, mines: 99, cellSize: 16, fontSize: '0.65rem' }
     };
 
     let ROWS = configs.easy.rows;
@@ -245,7 +253,6 @@
     const faceBtn = document.getElementById('face-btn');
     const flagHoldBtn = document.getElementById('flag-btn');
 
-    // Multi-finger hold detection for mobile touch events
     function setFlagMode(active) {
         isFlagModeHolding = active;
         if (active) {
@@ -308,7 +315,7 @@
                 
                 const cellEl = document.createElement('div');
                 cellEl.classList.add('cell');
-                cellEl.style.fontSize = currentDiff === 'hard' ? '0.9rem' : (currentDiff === 'normal' ? '1.1rem' : '1.3rem');
+                cellEl.style.fontSize = configs[currentDiff].fontSize;
                 cellEl.dataset.row = r;
                 cellEl.dataset.col = c;
                 
@@ -485,7 +492,7 @@
                 const cellEl = cellElements[index];
 
                 cellEl.className = 'cell';
-                cellEl.style.fontSize = currentDiff === 'hard' ? '0.9rem' : (currentDiff === 'normal' ? '1.1rem' : '1.3rem');
+                cellEl.style.fontSize = configs[currentDiff].fontSize;
                 cellEl.textContent = '';
 
                 if (gameOver) {
